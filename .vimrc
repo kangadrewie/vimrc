@@ -30,6 +30,8 @@ Plug 'tmsvg/pear-tree'
 Plug 'mattn/emmet-vim'
 Plug 'ianding1/leetcode.vim'
 Plug 'vimwiki/vimwiki'
+Plug 'christoomey/vim-tmux-navigator'
+Plug 'benmills/vimux'
 " React code snippets
 Plug 'epilande/vim-react-snippets'
 
@@ -48,15 +50,24 @@ noremap <S-k> ddkP==
 noremap <S-l> >>
 noremap <S-h> <<
 noremap <S-k> ddkP== 
-noremap <C-j> gj
-noremap <C-k> gk
+"noremap <C-j> gj
+"noremap <C-k> gk
 noremap <S-f> g;
-noremap <S-d> g,
+noremap <C-q> gT
+noremap <C-w> gt
 xnoremap <S-k> xkP`[V`]
 xnoremap <S-j> xp`[V`]
 xnoremap <S-h> <gv
 xnoremap <S-l> >gv
 xnoremap <Esc> <Esc><Esc>
+
+"let g:tmux_navigator_no_mappings = 1
+"
+"nnoremap <silent> <C-l> :TmuxNavigateLeft<cr>
+"nnoremap <silent> <C-d> :TmuxNavigateDown<cr>
+"nnoremap <silent> <C-u> :TmuxNavigateUp<cr>
+"nnoremap <silent> <C-r> :TmuxNavigateRight<cr>
+"nnoremap <silent> {Previous-Mapping} :TmuxNavigatePrevious<cr>
 
 " Vim Wiki
 let wiki = {}
@@ -72,7 +83,7 @@ if !hasmapto('<Plug>VimwikiPrevLink')
 endif
 
 " React Boilerplate Trigger configuration (Optional)
-let g:UltiSnipsExpandTrigger="<C-l>"
+let g:UltiSnipsExpandTrigger="<C-]>"
 
 " LeetCode Vim
 let g:leetcode_browser = 'chrome'
