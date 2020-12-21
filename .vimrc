@@ -17,6 +17,7 @@ set shortmess+=A
 set guitablabel=(%N)\ %t\ %M
 set backspace=indent,eol,start
 set nohlsearch
+"set splitright
 highlight Comment ctermfg=blue
 filetype plugin on
 
@@ -32,6 +33,7 @@ Plug 'ianding1/leetcode.vim'
 Plug 'vimwiki/vimwiki'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'benmills/vimux'
+Plug 'haskell/haskell-mode'
 " React code snippets
 Plug 'epilande/vim-react-snippets'
 
@@ -50,11 +52,10 @@ noremap <S-k> ddkP==
 noremap <S-l> >>
 noremap <S-h> <<
 noremap <S-k> ddkP== 
-"noremap <C-j> gj
-"noremap <C-k> gk
 noremap <S-f> g;
-noremap <C-q> gT
-noremap <C-w> gt
+noremap <S-q> gT
+noremap <S-w> gt
+noremap <S-P> o<Esc>P==
 xnoremap <S-k> xkP`[V`]
 xnoremap <S-j> xp`[V`]
 xnoremap <S-h> <gv
@@ -81,6 +82,21 @@ let wiki.nested_syntaxes = {'python': 'python', 'c++': 'cpp', 'js' : 'javascript
 if !hasmapto('<Plug>VimwikiPrevLink')
   nmap <silent><buffer> <S-Tab> <Plug>VimwikiPrevLink
 endif
+
+" Toggle Vexplore with Ctrl-E
+
+function! ToggleVExplorer()
+      Lexplore
+      vertical resize 30
+endfunction
+map <silent> <C-E> :call ToggleVExplorer()<CR>
+" Hit enter in the file browser to open the selected
+" file with :vsplit to the right of the browser.
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+
+" Change directory to the current buffer when opening files.
+set autochdir
 
 " React Boilerplate Trigger configuration (Optional)
 let g:UltiSnipsExpandTrigger="<C-]>"
@@ -190,4 +206,40 @@ let g:netrw_hide = 1                   " hide by default
 
 inoremap <S-Tab> <esc>la
 inoremap jj <esc>
+
+" Haskell Vim Config 
+let g:haskell_enable_quantification = 1   " to enable highlighting of `forall`
+let g:haskell_enable_recursivedo = 1      " to enable highlighting of `mdo` and `rec`
+let g:haskell_enable_arrowsyntax = 1      " to enable highlighting of `proc`
+let g:haskell_enable_pattern_synonyms = 1 " to enable highlighting of `pattern`
+let g:haskell_enable_typeroles = 1        " to enable highlighting of type roles
+let g:haskell_enable_static_pointers = 1  " to enable highlighting of `static`
+let g:haskell_classic_highlighting = 1
+let g:haskell_backpack = 1                " to enable highlighting of backpack keywords"
+
+" Haskell Indentation
+let g:haskell_indent_if = 3
+let g:haskell_indent_case = 2
+let g:haskell_indent_let = 4
+let g:haskell_indent_where = 6
+let g:haskell_indent_before_where = 2
+let g:haskell_indent_after_bare_where = 2
+let g:haskell_indent_do = 3
+let g:haskell_indent_in = 1
+let g:haskell_indent_guard = 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
