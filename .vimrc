@@ -21,24 +21,34 @@ set nohlsearch
 highlight Comment ctermfg=blue
 filetype plugin on
 
-
 " Plugins will be downloaded under the specified directory.
 call plug#begin('~/.vim/plugged')
 
 " Declare the list of plugins.
 Plug 'sheerun/vim-polyglot'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'tmsvg/pear-tree'
 Plug 'mattn/emmet-vim'
+Plug 'preservim/nerdtree'
 Plug 'ianding1/leetcode.vim'
 Plug 'vimwiki/vimwiki'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'benmills/vimux'
 Plug 'haskell/haskell-mode'
+Plug 'morhetz/gruvbox'
+Plug 'Xuyuanp/nerdtree-git-plugin'
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+Plug 'ryanoasis/vim-devicons'
+Plug 'airblade/vim-gitgutter'
+Plug 'ctrlpvim/ctrlp.vim' " fuzzy find files
+Plug 'scrooloose/nerdcommenter'
+" Plug 'prettier/vim-prettier', { 'do': 'yarn install' }
 " React code snippets
 Plug 'epilande/vim-react-snippets'
 
 " Ultisnips
-Plug 'SirVer/ultisnips'
+" Plug 'SirVer/ultisnips'
 
 
 " List ends here. Plugins become visible to Vim after this call.
@@ -62,6 +72,11 @@ xnoremap <S-h> <gv
 xnoremap <S-l> >gv
 xnoremap <Esc> <Esc><Esc>
 
+nmap <C-e> :CocCommand explorer<CR>
+nnoremap <C-e> :CocCommand explorer<CR>
+vmap ++ <plug>NERDCommenterToggle
+nmap ++ <plug>NERDCommenterToggle
+
 "let g:tmux_navigator_no_mappings = 1
 "
 "nnoremap <silent> <C-l> :TmuxNavigateLeft<cr>
@@ -83,20 +98,183 @@ if !hasmapto('<Plug>VimwikiPrevLink')
   nmap <silent><buffer> <S-Tab> <Plug>VimwikiPrevLink
 endif
 
-" Toggle Vexplore with Ctrl-E
+" Show full file path under window
+set laststatus=2
+set statusline+=%F
 
-function! ToggleVExplorer()
-      Lexplore
-      vertical resize 30
+colorscheme gruvbox
+set background=dark
+
+augroup MyCocExplorer
+  autocmd!
+  autocmd VimEnter * sil! au! FileExplorer *
+  autocmd BufEnter * let d = expand('%') | if isdirectory(d) | silent! bd | exe 'CocCommand explorer ' . d | endif
+augroup END
+
+function! s:explorer_cur_dir()
+  let node_info = CocAction('runCommand', 'explorer.getNodeInfo', 0)
+  return fnamemodify(node_info['fullpath'], ':h')
 endfunction
-map <silent> <C-E> :call ToggleVExplorer()<CR>
-" Hit enter in the file browser to open the selected
-" file with :vsplit to the right of the browser.
-let g:netrw_browse_split = 4
-let g:netrw_altv = 1
+
+function! s:exec_cur_dir(cmd)
+  let dir = s:explorer_cur_dir()
+  execute 'cd ' . dir
+  execute a:cmd
+endfunction
+
+function! s:init_explorer()
+  set winblend=10
+
+  " Integration with other plugins
+
+  " CocList
+  nnoremap <buffer> <Leader>fg :call <SID>exec_cur_dir('CocList -I grep')<CR>
+  nnoremap <buffer> <Leader>fG :call <SID>exec_cur_dir('CocList -I grep -regex')<CR>
+  nnoremap <buffer> <C-p> :call <SID>exec_cur_dir('CocList files')<CR>
+
+  " vim-floaterm
+  nnoremap <buffer> <Leader>ft :call <SID>exec_cur_dir('FloatermNew --wintype=floating')<CR>
+endfunction
+
+function! s:enter_explorer()
+  if &filetype == 'coc-explorer'
+    " statusline
+    setl statusline=coc-explorer
+  endif
+endfunction
+
+augroup CocExplorerCustom
+  autocmd!
+  autocmd BufEnter * call <SID>enter_explorer()
+  autocmd FileType coc-explorer call <SID>init_explorer()
+augroup END
+
+" vim-prettier
+"let g:prettier#quickfix_enabled = 0
+"let g:prettier#quickfix_auto_focus = 0
+" prettier command for coc
+" command! -nargs=0 Prettier :CocCommand prettier.formatFile
+" run prettier on save
+"let g:prettier#autoformat = 0
+"autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.yaml,*.html PrettierAsync
+
+" ctrlp
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']"
 
 " Change directory to the current buffer when opening files.
 set autochdir
+
+" coc config
+let g:coc_global_extensions = [
+  \ 'coc-snippets',
+  \ 'coc-pairs',
+  \ 'coc-tsserver',
+  \ 'coc-eslint', 
+  \ 'coc-prettier', 
+  \ 'coc-json', 
+  \ 'coc-css'
+  \ ]
+" from readme
+" if hidden is not set, TextEdit might fail.
+set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup " Better display for messages set cmdheight=2 " You will have bad experience for diagnostic messages when it's default 4000.
+set updatetime=300
+
+" don't give |ins-completion-menu| messages.
+set shortmess+=c
+
+" always show signcolumns
+set signcolumn=yes
+
+" Use tab for trigger completion with characters ahead and navigate.
+" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+vmap <leader>f  <Plug>(coc-format-selected)
+nmap <leader>f  <Plug>(coc-format-selected)
+
+" Use <c-space> to trigger completion.
+inoremap <silent><expr> <C-m> coc#refresh()
+
+" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
+" Coc only does snippet and additional edit on confirm.
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" Or use `complete_info` if your vim support it, like:
+" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+
+" Use `[g` and `]g` to navigate diagnostics
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+" Remap keys for gotos
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+" Use K to show documentation in preview window
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  else
+    call CocAction('doHover')
+  endif
+endfunction
+
+" Highlight symbol under cursor on CursorHold
+autocmd CursorHold * silent call CocActionAsync('highlight')
+
+" Remap for rename current word
+nmap <F2> <Plug>(coc-rename)
+
+" Remap for format selected region
+xmap <leader>f  <Plug>(coc-format-selected)
+nmap <leader>f  <Plug>(coc-format-selected)
+
+augroup mygroup
+  autocmd!
+  " Setup formatexpr specified filetype(s).
+  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+  " Update signature help on jump placeholder
+  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+augroup end
+
+" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
+xmap <leader>a  <Plug>(coc-codeaction-selected)
+nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+" Remap for do codeAction of current line
+nmap <leader>ac  <Plug>(coc-codeaction)
+" Fix autofix problem of current line
+nmap <leader>qf  <Plug>(coc-fix-current)
+
+" Create mappings for function text object, requires document symbols feature of languageserver.
+xmap if <Plug>(coc-funcobj-i)
+xmap af <Plug>(coc-funcobj-a)
+omap if <Plug>(coc-funcobj-i)
+omap af <Plug>(coc-funcobj-a)
+
+" Use `:Format` to format current buffer
+command! -nargs=0 Format :call CocAction('format')
+
+" Use `:Fold` to fold current buffer
+command! -nargs=? Fold :call     CocAction('fold', <f-args>)
+
+" use `:OR` for organize import of current buffer
+command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
+
+" Add status line support, for integration with other plugin, checkout `:h coc-status`
+set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " React Boilerplate Trigger configuration (Optional)
 let g:UltiSnipsExpandTrigger="<C-]>"
@@ -151,59 +329,6 @@ imap jj <Plug>(PearTreeFinishExpansion)
 " <Plug>(PearTreeExpandOne)
 " <Plug>(PearTreeJNR)
 
-function! NetrwOpenMultiTab(current_line,...) range
-   " Get the number of lines.
-   let n_lines =  a:lastline - a:firstline + 1
-
-   " This is the command to be built up.
-   let command = "normal "
-
-   " Iterator.
-   let i = 1
-
-   " Virtually iterate over each line and build the command.
-   while i < n_lines
-      let command .= "tgT:" . ( a:firstline + i ) . "\<CR>:+tabmove\<CR>"
-      let i += 1
-   endwhile
-   let command .= "tgT"
-
-   " Restore the Explore tab position.
-   if i != 1
-      let command .= ":tabmove -" . ( n_lines - 1 ) . "\<CR>"
-   endif
-
-   " Restore the previous cursor line.
-   let command .= ":" . a:current_line  . "\<CR>"
-
-   " Check function arguments
-   if a:0 > 0
-      if a:1 > 0 && a:1 <= n_lines
-         " The current tab is for the nth file.
-         let command .= ( tabpagenr() + a:1 ) . "gt"
-      else
-         " The current tab is for the last selected file.
-         let command .= (tabpagenr() + n_lines) . "gt"
-      endif
-   endif
-   " The current tab is for the Explore tab by default.
-
-   " Execute the custom command.
-   execute command
-endfunction
-
-" Define mappings.
-augroup NetrwOpenMultiTabGroup
-   autocmd!
-   autocmd Filetype netrw vnoremap <buffer> <silent> <expr> t ":call NetrwOpenMultiTab(" . line(".") . "," . "v:count)\<CR>"
-   autocmd Filetype netrw vnoremap <buffer> <silent> <expr> T ":call NetrwOpenMultiTab(" . line(".") . "," . (( v:count == 0) ? '' : v:count) . ")\<CR>"
-augroup END
-
-
-" Hide Dot Files in Explorer
-let g:netrw_list_hide = '^\..*'        " or anything you like
-let g:netrw_hide = 1                   " hide by default
-
 inoremap <S-Tab> <esc>la
 inoremap jj <esc>
 
@@ -229,17 +354,9 @@ let g:haskell_indent_in = 1
 let g:haskell_indent_guard = 2
 
 
+" Set MarkJS to JS Syntax
+au BufReadPost *.marko set syntax=javascript
 
-
-
-
-
-
-
-
-
-
-
-
-
+" CoC CSS
+autocmd FileType scss setl iskeyword+=@-@
 
